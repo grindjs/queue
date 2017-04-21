@@ -132,4 +132,8 @@ export class Job {
 		return json
 	}
 
+	$isDelayedFor(ms) {
+		return (this.$kueJob.promote_at - Date.now()) > ms
+	}
+
 }
