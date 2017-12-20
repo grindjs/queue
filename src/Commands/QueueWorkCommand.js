@@ -11,7 +11,7 @@ export class QueueWorkCommand extends Command {
 
 	options = [
 		new InputOption('queue', InputOption.VALUE_OPTIONAL, 'Specify the queue(s) to perform work for.'),
-		new InputOption('concurrency', InputOption.VALUE_OPTIONAL, 'Number of jobs to process concurrency.', '1'),
+		new InputOption('concurrency', InputOption.VALUE_OPTIONAL, 'Number of jobs to process concurrently.', '1'),
 		new InputOption('watch', InputOption.VALUE_OPTIONAL, 'Folders to watch for changes')
 	]
 
@@ -36,7 +36,7 @@ export class QueueWorkCommand extends Command {
 
 	async run() {
 		let queues = null
-		const connection = this.app.queue.get(this.argument('connection'))
+		const connection = await this.app.queue.get(this.argument('connection'))
 
 		if(this.containsOption('queue')) {
 			queues = this.option('queue').split(/,/).map(job => job.trim()).filter(job => job.length > 0)

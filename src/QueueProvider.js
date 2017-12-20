@@ -3,9 +3,14 @@ import './QueueFactory'
 import './Commands/MakeJobCommand'
 import './Commands/QueueWorkCommand'
 
-export function QueueProvider(app, classes = { }) {
+export async function QueueProvider(app, classes = { }) {
 	const factoryClass = classes.factoryClass || QueueFactory
 	app.queue = new factoryClass(app)
+
+	for(const connectionName of Object.keys(app.config.get('queue.connections'))) {
+		// Trigger initial setup of backend engines
+		await app.queue.get(connectionName)
+	}
 
 	if(app.cli.isNil) {
 		return
