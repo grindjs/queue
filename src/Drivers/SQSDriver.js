@@ -31,8 +31,11 @@ export class SQSDriver extends BaseDriver {
 
 		const params = {
 			QueueUrl: queueUrl,
-			MessageBody: JSON.stringify(payload),
-			DelaySeconds: payload.delay || 0
+			MessageBody: JSON.stringify(payload)
+		}
+
+		if(payload.delay > 0) {
+			params.DelaySeconds = Math.round(payload.delay / 1000)
 		}
 
 		return this.client.put(params)
@@ -98,6 +101,7 @@ export class SQSDriver extends BaseDriver {
 	}
 
 	destroy() {
+		this.client.isShutdown = true
 		this.client.constructor.queueUrls = { }
 		return super.destroy()
 	}

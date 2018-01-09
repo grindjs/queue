@@ -16,7 +16,8 @@
     "beanstalk",
     "ampq",
     "queue",
-    "faktory"
+    "faktory",
+    "sqs"
   ],
   "peerDependencies": {
     "grind-cli": "^0.7.0",

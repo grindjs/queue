@@ -32,6 +32,7 @@ export class SQS {
 
 	client = null
 	queueConfigs = null
+	isShutdown = false
 
 	constructor(config) {
 		loadPackage()
@@ -45,6 +46,12 @@ export class SQS {
 		if(!config.access_key.isNil && !config.secret_key.isNil) {
 			serviceConfig.accessKeyId = config.access_key
 			serviceConfig.secretAccessKey = config.secret_key
+		}
+
+		// Point endpoint to a mock SQS server for local testing
+		// for example, use elasticmq standalone server or docker image
+		if(!config.endpoint.isNil) {
+			serviceConfig.endpoint = config.endpoint
 		}
 
 		this.client = new sqs(serviceConfig)
@@ -161,6 +168,10 @@ export class SQS {
 	}
 
 	async watch(queue, concurrency, handler) {
+		if(this.isShutdown) {
+			return
+		}
+
 		const queueUrl = this.queueUrls[queue]
 
 		if(queueUrl.isNil) {
@@ -177,7 +188,11 @@ export class SQS {
 
 		const messages = await new Promise(resolve => {
 			return this.client.receiveMessage(params, (err, data) => {
-				if(err) {
+				if(!err.isNil) {
+					if(!this.isShutdown) {
+						Log.error(err)
+					}
+
 					return resolve()
 				} else if((data.Messages === void 0) || (data.Messages.length === 0)) {
 					return resolve()
@@ -186,6 +201,11 @@ export class SQS {
 				return resolve(data.Messages)
 			})
 		})
+
+		// No built-in way to interrupt receiveMessage polling once it starts, so shutdown exits before handling
+		if(this.isShutdown) {
+			return
+		}
 
 		if(Array.isArray(messages)) {
 			// Delete jobs from SQS so they are not reprocessed, then process them
