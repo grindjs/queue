@@ -5,6 +5,7 @@ import './Drivers/BaseDriver'
 import './Drivers/BeanstalkDriver'
 import './Drivers/FaktoryDriver'
 import './Drivers/RabbitDriver'
+import './Drivers/SQSDriver'
 
 export class QueueFactory {
 	app = null
@@ -16,22 +17,25 @@ export class QueueFactory {
 		faktory: FaktoryDriver,
 		rabbit: RabbitDriver,
 		rabbitmq: RabbitDriver,
-		amqp: RabbitDriver
+		amqp: RabbitDriver,
+		sqs: SQSDriver
 	}
 
 	constructor(app) {
 		this.app = app
 	}
 
-	dispatch(job, connection = null) {
-		return this.get(connection).dispatch(job)
+	async dispatch(job, connection = null) {
+		connection = await this.get(connection)
+		return connection.dispatch(job)
 	}
 
-	status(job, connection = null) {
-		return this.get(connection).status(job)
+	async status(job, connection = null) {
+		connection = await this.get(connection)
+		return connection.status(job)
 	}
 
-	get(connection) {
+	async get(connection) {
 		let name = null
 
 		if(connection.isNil) {
@@ -60,7 +64,7 @@ export class QueueFactory {
 			throw new Error(`Unsupported queue driver: ${config.driver}`)
 		}
 
-		connection = this.make(driverClass, config)
+		connection = await this.make(driverClass, config)
 
 		if(!name.isNil) {
 			this.connections[name] = connection
@@ -69,8 +73,11 @@ export class QueueFactory {
 		return connection
 	}
 
-	make(driverClass, config) {
-		return new Queue(this.app, this, new driverClass(this.app, config))
+	async make(driverClass, config) {
+		const driver = new driverClass(this.app, config)
+		await driver.ready()
+
+		return new Queue(this.app, this, driver)
 	}
 
 	registerDriver(name, driverClass) {

@@ -2,6 +2,7 @@
  * Base class all drivers must extend
  */
 export class BaseDriver {
+
 	app = null
 	state = null
 	retryDelay = 90000
@@ -14,6 +15,15 @@ export class BaseDriver {
 		if(config.retry_delay) {
 			this.retryDelay = Number.parseInt(config.retry_delay)
 		}
+	}
+
+	/**
+	* Performs setup operations when starting the driver
+	*
+	* @return Promise
+	*/
+	ready() {
+		return Promise.resolve()
 	}
 
 	/**

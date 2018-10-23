@@ -11,6 +11,7 @@ import './Drivers/BaseDriver'
 import './Drivers/BeanstalkDriver'
 import './Drivers/FaktoryDriver'
 import './Drivers/RabbitDriver'
+import './Drivers/SQSDriver'
 
 export {
 	Job,
@@ -23,6 +24,7 @@ export {
 	BeanstalkDriver,
 	FaktoryDriver,
 	RabbitDriver,
+	SQSDriver,
 
 	// Commands
 	QueueWorkCommand,
